@@ -11,6 +11,9 @@ FIGS_DIR = 'figs'
 
 
 def save_figure(fig, figure_name, fig_dir):
+    """
+    Save a figure in the given folder, and create the folder if it doesn't exist
+    """
     try:
         if not os.path.exists(os.path.join(os.getcwd(), fig_dir)):
             os.mkdir(os.path.join(os.getcwd(), fig_dir))
