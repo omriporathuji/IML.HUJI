@@ -4,6 +4,19 @@ from utils import *
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from math import atan2, pi
+import os
+
+DATASETS_PATH = '../datasets'
+FIGS_DIR = 'figs'
+
+
+def save_figure(fig, figure_name, fig_dir):
+    try:
+        if not os.path.exists(os.path.join(os.getcwd(), fig_dir)):
+            os.mkdir(os.path.join(os.getcwd(), fig_dir))
+        fig.write_html(os.path.join(os.getcwd(), fig_dir, figure_name))
+    except:
+        print("Could not save figure")
 
 
 def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -36,16 +49,25 @@ def run_perceptron():
     Create a line plot that shows the perceptron algorithm's training loss values (y-axis)
     as a function of the training iterations (x-axis).
     """
-    for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
+    for n, f in [("Linearly Separable", "linearly_separable.npy"),
+                 ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        X, y = load_dataset(os.path.join(DATASETS_PATH, f))
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
+        callback = lambda P, _, __: losses.append(P.loss(X, y))
+        perceptron = Perceptron(max_iter=1000, callback=callback)
+        perceptron.fit(X, y)
 
         # Plot figure of loss as function of fitting iteration
-        raise NotImplementedError()
+        fig = px.line(x=range(len(losses)), y=losses, labels={'x': 'Iteration', 'y': 'Misclassification Error'},
+                      markers=True, title="<b>Perceptron Training Loss by Iteration on {} data</b>".format(n))
+        fig.update_layout(title_font_size=30, margin=dict(t=75))
+        fig.update_xaxes(title_font_size=20)
+        fig.update_yaxes(title_font_size=20)
+
+        save_figure(fig, 'perceptron_{}.html'.format(f.split('.')[0]), FIGS_DIR)
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):
@@ -79,25 +101,59 @@ def compare_gaussian_classifiers():
     """
     for f in ["gaussian1.npy", "gaussian2.npy"]:
         # Load dataset
-        raise NotImplementedError()
+        X, y = load_dataset(os.path.join(DATASETS_PATH, f))
+        bayes = GaussianNaiveBayes()
+        lda = LDA()
 
         # Fit models and predict over training set
-        raise NotImplementedError()
+        bayes.fit(X, y)
+        bayes_y = bayes.predict(X)
 
-        # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
+        lda.fit(X, y)
+        lda_y = lda.predict(X)
+
+        # Plot a figure with two subplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # Create subplots
+
         from IMLearn.metrics import accuracy
-        raise NotImplementedError()
+        fig = make_subplots(rows=1, cols=2, subplot_titles=[
+            f"Gaussian Naive Bayes: Accuracy = {np.round(accuracy(y, bayes_y), 4) * 100}%",
+            f"LDA: Accuracy = {np.round(accuracy(y, lda_y), 4) * 100}%"])
 
         # Add traces for data-points setting symbols and colors
-        raise NotImplementedError()
+        fig.add_traces([go.Scatter(x=X[:, 0], y=X[:, 1], mode='markers', marker={'color': bayes_y,
+                                                                                 'symbol': class_symbols[y],
+                                                                                 'colorscale': class_colors(3),
+                                                                                 'size': 11}),
+                        go.Scatter(x=X[:, 0], y=X[:, 1], mode='markers', marker={'color': lda_y,
+                                                                                 'symbol': class_symbols[y],
+                                                                                 'colorscale': class_colors(3),
+                                                                                 'size': 11})],
+                       rows=[1, 1], cols=[1, 2])
 
         # Add `X` dots specifying fitted Gaussians' means
-        raise NotImplementedError()
+        fig.add_traces([go.Scatter(x=bayes.mu_[:, 0], y=bayes.mu_[:, 1], mode='markers', marker={'symbol': 'x',
+                                                                                                 'color': 'black',
+                                                                                                 'size': 15}),
+                        go.Scatter(x=lda.mu_[:, 0], y=lda.mu_[:, 1], mode='markers', marker={'symbol': 'x',
+                                                                                             'color': 'black',
+                                                                                             'size': 15})],
+                       rows=[1, 1], cols=[1, 2])
 
         # Add ellipses depicting the covariances of the fitted Gaussians
-        raise NotImplementedError()
+        for i in range(len(bayes.mu_)):
+            fig.add_traces([get_ellipse(bayes.mu_[i], np.diag(bayes.vars_[i])),
+                            get_ellipse(lda.mu_[i], lda.cov_)],
+                           rows=[1, 1], cols=[1, 2])
+
+        fig.update_layout(title_text=f"<b>Comparing Gaussian Classifiers over the {f.split('.')[0]} dataset</b>",
+                          showlegend=False, title_font_size=30, margin=dict(t=75))
+        fig.update_annotations(font_size=25)
+        fig.update_xaxes(title_text='x1', title_font_size=15)
+        fig.update_yaxes(title_text='x2', title_font_size=15)
+
+        save_figure(fig, 'compare_gaussian_classifiers_{}.html'.format(f.split('.')[0]), FIGS_DIR)
 
 
 if __name__ == '__main__':
