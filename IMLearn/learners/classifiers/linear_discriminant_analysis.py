@@ -106,6 +106,7 @@ class LDA(BaseEstimator):
 
         return np.column_stack(likelihood_arrays)
 
+
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
         Evaluate performance under misclassification loss function
