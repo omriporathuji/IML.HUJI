@@ -96,15 +96,6 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        # root_coef = np.sqrt(((2 * np.pi) ** X.shape[1]) * det(self.cov_))
-        #
-        # likelihood_arrays = []
-        # for c in range(len(self.classes_)):
-        #     e = np.exp(np.sum((X - self.mu_[c]) @ self._cov_inv * (X - self.mu_[c]), axis=1) / (-2))
-        #     p = self.pi_[c]
-        #     likelihood_arrays.append((e * p) / root_coef)
-        #
-        # return np.column_stack(likelihood_arrays)
         z = np.sqrt((2 * np.pi) ** X.shape[1] * np.linalg.det(self.cov_))
         d = X[:, np.newaxis, :] - self.mu_
         l = np.exp(-.5 * np.sum(d.dot(self._cov_inv) * d, axis=2)) / z
