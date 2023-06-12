@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 id=0
-cd "$HOME/Uni/IML/IML.HUJI/submissions/ex3"
+cd "$HOME/Uni/IML/IML.HUJI/submissions/ex4"
 
 base_path="$HOME/Uni/IML/IML.HUJI"
 
